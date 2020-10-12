@@ -55,7 +55,12 @@
 #include "tls13/early_data.h"
 #include "tls13/finished.h"
 #include "tls13/key_update.h"
+#include "tls13/fido2_assertion_request.h"
+#include "tls13/fido2_assertion_response.h"
+#include "tls13/fido2_name_request.h"
+#include "tls13/fido2_name_response.h"
 #include "ext/pre_shared_key.h"
+#include "ext/fido2.h"
 #include "locks.h"
 
 static int generate_rms_keys(gnutls_session_t session);
@@ -127,36 +132,43 @@ int _gnutls13_handshake_client(gnutls_session_t session)
 		ret = _gnutls13_recv_encrypted_extensions(session);
 		STATE = STATE104;
 		IMED_RET("recv encrypted extensions", ret, 0);
-		FALLTHROUGH;
+		FALLTHROUGH; 
 	case STATE105:
-		ret = _gnutls13_recv_certificate_request(session);
+		if(session->internals.fido2_status == GNUTLS_FIDO2_STATUS_ACTIVE) {
+			ret = _gnutls13_recv_fido2_request(session);
+		}
 		STATE = STATE105;
-		IMED_RET("recv certificate request", ret, 0);
+		IMED_RET("recv fido2 request", ret, 0);
 		FALLTHROUGH;
 	case STATE106:
-		ret = _gnutls13_recv_certificate(session);
+		ret = _gnutls13_recv_certificate_request(session);
 		STATE = STATE106;
-		IMED_RET("recv certificate", ret, 0);
+		IMED_RET("recv certificate request", ret, 0);
 		FALLTHROUGH;
 	case STATE107:
-		ret = _gnutls13_recv_certificate_verify(session);
+		ret = _gnutls13_recv_certificate(session);
 		STATE = STATE107;
-		IMED_RET("recv server certificate verify", ret, 0);
+		IMED_RET("recv certificate", ret, 0);
 		FALLTHROUGH;
 	case STATE108:
-		ret = _gnutls_run_verify_callback(session, GNUTLS_CLIENT);
+		ret = _gnutls13_recv_certificate_verify(session);
 		STATE = STATE108;
+		IMED_RET("recv server certificate verify", ret, 0);
+		FALLTHROUGH;
+	case STATE109:
+		ret = _gnutls_run_verify_callback(session, GNUTLS_CLIENT);
+		STATE = STATE109;
 		if (ret < 0)
 			return gnutls_assert_val(ret);
 		FALLTHROUGH;
-	case STATE109:
+	case STATE110:
 		ret = _gnutls13_recv_finished(session);
-		STATE = STATE109;
+		STATE = STATE110;
 		IMED_RET("recv finished", ret, 0);
 		FALLTHROUGH;
-	case STATE110:
-		ret = _gnutls13_send_end_of_early_data(session, AGAIN(STATE110));
-		STATE = STATE110;
+	case STATE111:
+		ret = _gnutls13_send_end_of_early_data(session, AGAIN(STATE111));
+		STATE = STATE111;
 		IMED_RET("send end of early data", ret, 0);
 
 		/* Note that we check IN_FLIGHT, not ACCEPTED
@@ -168,23 +180,30 @@ int _gnutls13_handshake_client(gnutls_session_t session)
 			IMED_RET_FATAL("set hs traffic key after sending early data", ret, 0);
 		}
 		FALLTHROUGH;
-	case STATE111:
-		ret = _gnutls13_send_certificate(session, AGAIN(STATE111));
-		STATE = STATE111;
+	case STATE112:
+		ret = _gnutls13_send_certificate(session, AGAIN(STATE112));
+		STATE = STATE112;
 		IMED_RET("send certificate", ret, 0);
 		FALLTHROUGH;
-	case STATE112:
-		ret = _gnutls13_send_certificate_verify(session, AGAIN(STATE112));
-		STATE = STATE112;
-		IMED_RET("send certificate verify", ret, 0);
-		FALLTHROUGH;
 	case STATE113:
-		ret = _gnutls13_send_finished(session, AGAIN(STATE113));
+		ret = _gnutls13_send_certificate_verify(session, AGAIN(STATE113));
 		STATE = STATE113;
+		IMED_RET("send certificate verify", ret, 0);
+		FALLTHROUGH; 
+	case STATE114:
+		if (session->internals.fido2_status == GNUTLS_FIDO2_STATUS_ACTIVE) {
+			ret = _gnutls13_send_fido2_response(session);
+		}
+		STATE = STATE114;
+		IMED_RET("send fido2 response", ret, 0);
+		FALLTHROUGH;
+	case STATE115:
+		ret = _gnutls13_send_finished(session, AGAIN(STATE115));
+		STATE = STATE115;
 		IMED_RET("send finished", ret, 0);
 		FALLTHROUGH;
-	case STATE114:
-		STATE = STATE114;
+	case STATE116:
+		STATE = STATE116;
 
 		ret =
 		    generate_ap_traffic_keys(session);
@@ -449,30 +468,41 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 		ret = _gnutls13_send_encrypted_extensions(session, AGAIN(STATE102));
 		STATE = STATE102;
 		IMED_RET("send encrypted extensions", ret, 0);
-		FALLTHROUGH;
+		FALLTHROUGH; 
 	case STATE103:
-		ret = _gnutls13_send_certificate_request(session, AGAIN(STATE103));
+		if(session->internals.fido2_status == GNUTLS_FIDO2_STATUS_ACTIVE) {
+				ret = _gnutls13_send_fido2_request(session);
+		} else {
+			if (session->internals.fido2_config == GNUTLS_FIDO2_CONFIG_REQUIRED) {
+				return gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_REQUIRED);
+			}
+		}
 		STATE = STATE103;
-		IMED_RET("send certificate request", ret, 0);
+		IMED_RET("send fido2 request", ret, 0);
 		FALLTHROUGH;
 	case STATE104:
-		ret = _gnutls13_send_certificate(session, AGAIN(STATE104));
+		ret = _gnutls13_send_certificate_request(session, AGAIN(STATE104));
 		STATE = STATE104;
-		IMED_RET("send certificate", ret, 0);
+		IMED_RET("send certificate request", ret, 0);
 		FALLTHROUGH;
 	case STATE105:
-		ret = _gnutls13_send_certificate_verify(session, AGAIN(STATE105));
+		ret = _gnutls13_send_certificate(session, AGAIN(STATE105));
 		STATE = STATE105;
-		IMED_RET("send certificate verify", ret, 0);
+		IMED_RET("send certificate", ret, 0);
 		FALLTHROUGH;
 	case STATE106:
-		ret = _gnutls13_send_finished(session, AGAIN(STATE106));
+		ret = _gnutls13_send_certificate_verify(session, AGAIN(STATE106));
 		STATE = STATE106;
-		IMED_RET("send finished", ret, 0);
+		IMED_RET("send certificate verify", ret, 0);
 		FALLTHROUGH;
 	case STATE107:
-		ret = _gnutls13_recv_end_of_early_data(session);
+		ret = _gnutls13_send_finished(session, AGAIN(STATE107));
 		STATE = STATE107;
+		IMED_RET("send finished", ret, 0);
+		FALLTHROUGH;
+	case STATE108:
+		ret = _gnutls13_recv_end_of_early_data(session);
+		STATE = STATE108;
 		IMED_RET("recv end of early data", ret, 0);
 
 		if (session->internals.hsk_flags & HSK_EARLY_DATA_ACCEPTED) {
@@ -480,7 +510,7 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 			IMED_RET_FATAL("set hs traffic key after receiving early data", ret, 0);
 		}
 		FALLTHROUGH;
-	case STATE108:
+	case STATE109:
 		/* At this point our sending keys should be the app keys
 		 * see 4.4.4 at draft-ietf-tls-tls13-28 */
 		ret =
@@ -490,7 +520,7 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 		/* If the session is unauthenticated, try to optimize the handshake by
 		 * sending the session ticket early. */
 		if (!(session->internals.hsk_flags & (HSK_CRT_REQ_SENT|HSK_PSK_SELECTED))) {
-			STATE = STATE108;
+			STATE = STATE109;
 
 			ret = generate_non_auth_rms_keys(session);
 			IMED_RET_FATAL("generate rms keys", ret, 0);
@@ -505,16 +535,15 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 		_gnutls_handshake_log("HSK[%p]: switching early to application traffic keys\n", session);
 
 		FALLTHROUGH;
-	case STATE109:
+	case STATE110:
 		if (session->internals.resumed != RESUME_FALSE)
 			_gnutls_set_resumed_parameters(session);
 
 		if (session->internals.hsk_flags & HSK_EARLY_START_USED) {
-			if (!(session->internals.flags & GNUTLS_NO_AUTO_SEND_TICKET))
-				ret = _gnutls13_send_session_ticket(session, TLS13_TICKETS_TO_SEND,
-								    AGAIN(STATE109));
+			ret = _gnutls13_send_session_ticket(session, TLS13_TICKETS_TO_SEND,
+							    AGAIN(STATE109));
 
-			STATE = STATE109;
+			STATE = STATE110;
 			IMED_RET("send session ticket", ret, 0);
 
 			/* complete this phase of the handshake. We
@@ -522,7 +551,7 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 			 */
 
 			if (session->internals.flags & GNUTLS_ENABLE_EARLY_START) {
-				STATE = STATE113; /* finished */
+				STATE = STATE115; /* finished */
 				gnutls_assert();
 
 				session->internals.recv_state = RECV_STATE_EARLY_START;
@@ -530,31 +559,38 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 			}
 		}
 		FALLTHROUGH;
-	case STATE110:
+	case STATE111:
 		ret = _gnutls13_recv_certificate(session);
-		STATE = STATE110;
+		STATE = STATE111;
 		IMED_RET("recv certificate", ret, 0);
 		FALLTHROUGH;
-	case STATE111:
+	case STATE112:
 		ret = _gnutls13_recv_certificate_verify(session);
-		STATE = STATE111;
+		STATE = STATE112;
 		IMED_RET("recv certificate verify", ret, 0);
 		FALLTHROUGH;
-	case STATE112:
+	case STATE113:
 		ret = _gnutls_run_verify_callback(session, GNUTLS_CLIENT);
-		STATE = STATE112;
+		STATE = STATE113;
 		if (ret < 0)
 			return gnutls_assert_val(ret);
+		FALLTHROUGH; 
+	case STATE114:
+		if (session->internals.fido2_status == GNUTLS_FIDO2_STATUS_ACTIVE) {
+				ret = _gnutls13_recv_fido2_response(session);
+		}
+		STATE = STATE114;
+		IMED_RET("recv fido2 response", ret, 0);
 		FALLTHROUGH;
-	case STATE113: /* can enter from STATE109 */
+	case STATE115: /* can enter from STATE110 */
 		ret = _gnutls13_recv_finished(session);
-		STATE = STATE113;
+		STATE = STATE115;
 		IMED_RET("recv finished", ret, 0);
 		FALLTHROUGH;
-	case STATE114:
+	case STATE116:
 		/* If we did request a client certificate, then we can
 		 * only send the tickets here */
-		STATE = STATE114;
+		STATE = STATE116;
 
 		if (!(session->internals.hsk_flags & HSK_EARLY_START_USED)) {
 			ret = generate_rms_keys(session);
@@ -565,12 +601,11 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 		IMED_RET_FATAL("set read app keys", ret, 0);
 
 		FALLTHROUGH;
-	case STATE115:
-		if (!(session->internals.hsk_flags & (HSK_TLS13_TICKET_SENT|HSK_EARLY_START_USED)) &&
-		    !(session->internals.flags & GNUTLS_NO_AUTO_SEND_TICKET)) {
+	case STATE117:
+		if (!(session->internals.hsk_flags & (HSK_TLS13_TICKET_SENT|HSK_EARLY_START_USED))) {
 			ret = _gnutls13_send_session_ticket(session, TLS13_TICKETS_TO_SEND,
-							    AGAIN(STATE115));
-			STATE = STATE115;
+							    AGAIN(STATE117));
+			STATE = STATE117;
 			IMED_RET("send session ticket", ret, 0);
 		}
 
@@ -784,3 +819,134 @@ int gnutls_session_ticket_send(gnutls_session_t session, unsigned nr, unsigned f
 
 	return 0;
 }
+
+int _gnutls13_send_fido2_request(gnutls_session_t session) {
+	int ret;
+	fido2_server_ext_st *priv;
+	gnutls_ext_priv_data_t epriv;
+
+ 	ret = _gnutls_hello_ext_get_priv(session, GNUTLS_EXTENSION_FIDO2, &epriv);
+  	if (ret < 0){
+		gnutls_assert();
+    	return GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE;
+  	}
+  	priv = epriv;
+
+	switch (priv->mode) {
+		case GNUTLS_FIDO2_MODE_FI:
+			if (session->internals.hsk_flags & HSK_PSK_SELECTED) {
+				goto alert;
+			}
+			ret = _gnutls13_send_fido2_assertion_request(session, priv);
+			break;
+		case GNUTLS_FIDO2_MODE_FN:
+			if (priv->eph_user_name_set == 1) { 
+				if (session->internals.hsk_flags & HSK_PSK_SELECTED) {
+				goto alert;
+			}
+				ret = _gnutls13_send_fido2_assertion_request(session, priv);
+			} else {
+				ret = _gnutls13_send_fido2_name_request(session, priv);
+			}
+			break;
+		default: /* should not happen */
+			gnutls_assert();
+			return GNUTLS_E_INTERNAL_ERROR;
+	}
+	return ret;
+
+	alert:
+		/* we do not allow PSKs in the second TFE-Handshake */
+		return gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_ILLEGAL_PARAMETER);
+}
+
+int _gnutls13_recv_fido2_request(gnutls_session_t session) {
+	int ret;
+	fido2_client_ext_st *priv;
+	gnutls_ext_priv_data_t epriv;
+
+	ret = _gnutls_hello_ext_get_priv(session, GNUTLS_EXTENSION_FIDO2, &epriv);
+	if (ret < 0) {
+		gnutls_assert();
+		return GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE;
+	}
+	priv = epriv;
+
+	switch(priv->mode) {
+		case GNUTLS_FIDO2_MODE_FI:
+			ret = _gnutls13_recv_fido2_assertion_request(session, priv);
+			break;
+		case GNUTLS_FIDO2_MODE_FN:
+			if (priv->eph_user_name_set == 0) { 
+				ret = _gnutls13_recv_fido2_name_request(session, priv);
+			} else {
+				ret = _gnutls13_recv_fido2_assertion_request(session, priv);
+			}
+			break;
+		default: /* should not happen */
+			gnutls_assert();
+			return GNUTLS_E_INTERNAL_ERROR;
+	}
+	return ret;
+}
+
+int _gnutls13_send_fido2_response(gnutls_session_t session) {
+	int ret;
+	fido2_client_ext_st *priv;
+	gnutls_ext_priv_data_t epriv;
+
+	ret = _gnutls_hello_ext_get_priv(session, GNUTLS_EXTENSION_FIDO2, &epriv);
+	if (ret < 0) {
+		gnutls_assert();
+		return GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE;
+	}
+	priv = epriv;
+
+	switch(priv->mode) {
+		case GNUTLS_FIDO2_MODE_FI:
+			ret = _gnutls13_send_fido2_assertion_response(session, priv);
+			break;
+		case GNUTLS_FIDO2_MODE_FN:
+			if (priv->assertion_set == 1) {
+				ret = _gnutls13_send_fido2_assertion_response(session, priv);
+			} else {
+				ret = _gnutls13_send_fido2_name_response(session, priv);
+			}
+			break;
+		default: /* should not happen */
+			gnutls_assert();
+			return GNUTLS_E_INTERNAL_ERROR;
+	}
+	return ret;
+}
+
+int _gnutls13_recv_fido2_response(gnutls_session_t session) {
+	int ret;
+	fido2_server_ext_st *priv;
+	gnutls_ext_priv_data_t epriv;
+
+	ret = _gnutls_hello_ext_get_priv(session, GNUTLS_EXTENSION_FIDO2, &epriv);
+	if (ret < 0) {
+		gnutls_assert();
+		return GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE;
+	}
+	priv = epriv;	
+
+	switch(priv->mode) {
+		case GNUTLS_FIDO2_MODE_FI:
+			ret = _gnutls13_recv_fido2_assertion_response(session, priv);
+			break;
+		case GNUTLS_FIDO2_MODE_FN:
+			if (priv->eph_user_name_set == 1) {
+				ret = _gnutls13_recv_fido2_assertion_response(session, priv);
+			} else {
+				ret = _gnutls13_recv_fido2_name_response(session, priv);
+			}
+			break;
+		default: /* should not happen */
+			gnutls_assert();
+			return GNUTLS_E_INTERNAL_ERROR;
+	}
+	return ret;
+}
+
