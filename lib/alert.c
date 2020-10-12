@@ -86,6 +86,12 @@ static const gnutls_alert_entry sup_alerts[] = {
 		    ("No supported application protocol could be negotiated")),
 	ALERT_ENTRY(GNUTLS_A_CERTIFICATE_REQUIRED,
 		    N_("Certificate is required")),
+	ALERT_ENTRY(GNUTLS_A_FIDO2_BAD_REQUEST,
+			N_("A malformed TFE-Handshake message was sent")),
+	ALERT_ENTRY(GNUTLS_A_FIDO2_AUTHENTICATION_ERROR,
+			N_("Authentication via FIDO2 failed")),
+	ALERT_ENTRY(GNUTLS_A_FIDO2_REQUIRED,
+			N_("The FIDO2 extension was not provided by the client")),
 	{0, NULL, NULL}
 };
 
