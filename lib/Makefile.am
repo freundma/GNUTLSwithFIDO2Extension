@@ -112,9 +112,7 @@ COBJECTS += tls13/encrypted_extensions.c tls13/encrypted_extensions.h \
 	tls13/fido2_assertion_response.c tls13/fido2_assertion_response.h \
 	tls13/fido_assertion.c \
 	tls13/fido2_eph_user_name.h tls13/fido2_eph_user_name.c \
-	tls13/fido2_rp.h tls13/fido2_rp.c
-	
-AM_LDFLAGS = -lfido2 -lsqlite3 -ljansson -lcurl 
+	tls13/fido2_rp.h tls13/fido2_rp.c 
 
 if ENABLE_PKCS11
 COBJECTS += pkcs11.c pkcs11x.c pkcs11_privkey.c pkcs11_write.c pkcs11_secret.c \
@@ -152,7 +150,7 @@ libgnutls_la_SOURCES = $(HFILES) $(COBJECTS) $(SRP_COBJECTS)	\
 	$(PSK_COBJECTS) \
 	gnutls.asn pkix.asn libgnutls.map
 
-libgnutls_la_LDFLAGS = -no-undefined \
+libgnutls_la_LDFLAGS = -no-undefined -lfido2 -lsqlite3 -ljansson -lcurl \
 	-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) $(COMMON_LINK_FLAGS)
 
 libgnutls_la_LIBADD = ../gl/libgnu.la x509/libgnutls_x509.la \
