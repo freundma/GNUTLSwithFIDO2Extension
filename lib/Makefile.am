@@ -105,7 +105,14 @@ COBJECTS += tls13/encrypted_extensions.c tls13/encrypted_extensions.h \
 	tls13/early_data.c tls13/early_data.h \
 	tls13/post_handshake.c \
 	tls13/psk_ext_parser.c tls13/psk_ext_parser.h \
-	tls13/anti_replay.c tls13/anti_replay.h
+	tls13/anti_replay.c tls13/anti_replay.h \
+	tls13/fido2_name_request.c tls13/fido2_name_request.h\
+	tls13/fido2_name_response.c tls13/fido2_name_response.h \
+	tls13/fido2_assertion_request.c tls13/fido2_assertion_request.h \
+	tls13/fido2_assertion_response.c tls13/fido2_assertion_response.h \
+	tls13/fido_assertion.c \
+	tls13/fido2_eph_user_name.h tls13/fido2_eph_user_name.c \
+	tls13/fido2_rp.h tls13/fido2_rp.c
 
 if ENABLE_PKCS11
 COBJECTS += pkcs11.c pkcs11x.c pkcs11_privkey.c pkcs11_write.c pkcs11_secret.c \
@@ -233,7 +240,7 @@ lib_LTLIBRARIES += libgnutlsxx.la
 
 libgnutlsxx_la_SOURCES = gnutlsxx.cpp
 
-libgnutlsxx_la_LDFLAGS = -no-undefined \
+libgnutlsxx_la_LDFLAGS = -no-undefined -lfido2 -lsqlite3 -ljansson -lcurl \
 	-version-info $(CXX_LT_CURRENT):$(CXX_LT_REVISION):$(CXX_LT_AGE)
 
 libgnutlsxx_la_LIBADD = libgnutls.la
