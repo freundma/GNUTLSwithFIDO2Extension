@@ -52,6 +52,7 @@ doc/examples/ex-client1
 doc/examples/ex-client2
 doc/examples/ex-client-anon
 doc/examples/ex-client-dtls
+doc/examples/ex-client-fido2
 doc/examples/ex-client-psk
 doc/examples/ex-client-resume
 doc/examples/ex-client-srp
@@ -68,11 +69,13 @@ doc/examples/ex-rfc2818
 doc/examples/ex-serv1
 doc/examples/ex-serv-anon
 doc/examples/ex-serv-dtls
+doc/examples/ex-serv-fido2
 doc/examples/ex-serv-export
 doc/examples/ex-serv-pgp
 doc/examples/ex-serv-psk
 doc/examples/ex-serv-srp
 doc/examples/ex-serv-x509
+doc/examples/fido2-user-db
 doc/examples/libexamples.la
 doc/examples/Makefile
 doc/examples/Makefile.in
@@ -918,3 +921,4 @@ tmp-*
 *.trs
 win32
 win64
+*.db
