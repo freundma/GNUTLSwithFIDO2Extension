@@ -51,7 +51,10 @@ libgnutls_ext_la_SOURCES = max_record.c \
 	record_size_limit.c record_size_limit.h \
 	client_cert_type.c client_cert_type.h \
 	server_cert_type.c server_cert_type.h \
-	cert_types.h
+	cert_types.h \
+	fido2.c fido2.h # FIDO2 client hello extension
+	
+AM_LDFLAGS = -lsqlite3
 
 if ENABLE_ALPN
 libgnutls_ext_la_SOURCES += alpn.c alpn.h
