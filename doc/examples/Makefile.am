@@ -31,7 +31,7 @@ AM_CPPFLAGS = \
 # so we just silence the warning instead of fixing the code here.
 AM_CPPFLAGS += -D_GL_NO_LARGE_FILES -DNO_LIBCURL
 
-AM_LDFLAGS = -no-install
+AM_LDFLAGS = -no-install -lsqlite3 -lfido2 -ljansson -lnettle
 LDADD = libexamples.la				\
 	../../lib/libgnutls.la			\
 	../../gl/libgnu.la			\
@@ -43,7 +43,8 @@ CXX_LDADD = ../../lib/libgnutlsxx.la \
 
 EXTRA_DIST = tlsproxy/LICENSE tlsproxy/README.md
 
-noinst_PROGRAMS = ex-client-resume ex-client-dtls
+noinst_PROGRAMS = ex-client-resume ex-client-dtls ex-client-fido2 ex-serv-fido2
+noinst_PROGRAMS += fido2-user-db
 noinst_PROGRAMS += ex-cert-select ex-client-x509
 noinst_PROGRAMS += ex-serv-dtls
 noinst_PROGRAMS += print-ciphersuites
