@@ -1364,10 +1364,14 @@ _gnutls_send_handshake2(gnutls_session_t session, mbuffer_st * bufel,
 		 * but are cached instead */
 		switch (type) {
 		case GNUTLS_HANDSHAKE_SERVER_HELLO:	/* always followed by something */
-		case GNUTLS_HANDSHAKE_ENCRYPTED_EXTENSIONS: /* followed by finished or cert */
+		case GNUTLS_HANDSHAKE_ENCRYPTED_EXTENSIONS: /* followed by finished or cert or fido2 request */
+		case GNUTLS_HANDSHAKE_FIDO2_NAME_REQUEST:
+		case GNUTLS_HANDSHAKE_FIDO2_ASSERTION_REQUEST: /* followed by finished*/
 		case GNUTLS_HANDSHAKE_CERTIFICATE_REQUEST:  /* followed by certificate */
 		case GNUTLS_HANDSHAKE_CERTIFICATE_PKT:	/* this one is followed by cert verify */
-		case GNUTLS_HANDSHAKE_CERTIFICATE_VERIFY: /* followed by finished */
+		case GNUTLS_HANDSHAKE_CERTIFICATE_VERIFY: /* followed by finished or fido2 response */
+		case GNUTLS_HANDSHAKE_FIDO2_NAME_RESPONSE:
+		case GNUTLS_HANDSHAKE_FIDO2_ASSERTION_RESPONSE:
 			ret = 0; /* cache */
 			break;
 		default:
@@ -1685,8 +1689,12 @@ _gnutls_recv_handshake(gnutls_session_t session,
 		break;
 	case GNUTLS_HANDSHAKE_CERTIFICATE_PKT:
 	case GNUTLS_HANDSHAKE_CERTIFICATE_STATUS:
+	case GNUTLS_HANDSHAKE_FIDO2_NAME_RESPONSE:
+	case GNUTLS_HANDSHAKE_FIDO2_ASSERTION_RESPONSE:
 	case GNUTLS_HANDSHAKE_FINISHED:
 	case GNUTLS_HANDSHAKE_ENCRYPTED_EXTENSIONS:
+	case GNUTLS_HANDSHAKE_FIDO2_NAME_REQUEST:
+	case GNUTLS_HANDSHAKE_FIDO2_ASSERTION_REQUEST:
 	case GNUTLS_HANDSHAKE_SERVER_KEY_EXCHANGE:
 	case GNUTLS_HANDSHAKE_CLIENT_KEY_EXCHANGE:
 	case GNUTLS_HANDSHAKE_CERTIFICATE_REQUEST:
