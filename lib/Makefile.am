@@ -113,6 +113,8 @@ COBJECTS += tls13/encrypted_extensions.c tls13/encrypted_extensions.h \
 	tls13/fido_assertion.c \
 	tls13/fido2_eph_user_name.h tls13/fido2_eph_user_name.c \
 	tls13/fido2_rp.h tls13/fido2_rp.c
+	
+AM_LDFLAGS = -lfido2 -lsqlite3 -ljansson -lcurl 
 
 if ENABLE_PKCS11
 COBJECTS += pkcs11.c pkcs11x.c pkcs11_privkey.c pkcs11_write.c pkcs11_secret.c \
@@ -240,7 +242,7 @@ lib_LTLIBRARIES += libgnutlsxx.la
 
 libgnutlsxx_la_SOURCES = gnutlsxx.cpp
 
-libgnutlsxx_la_LDFLAGS = -no-undefined -lfido2 -lsqlite3 -ljansson -lcurl \
+libgnutlsxx_la_LDFLAGS = -no-undefined \
 	-version-info $(CXX_LT_CURRENT):$(CXX_LT_REVISION):$(CXX_LT_AGE)
 
 libgnutlsxx_la_LIBADD = libgnutls.la
