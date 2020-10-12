@@ -332,6 +332,7 @@ typedef enum extensions_t {
 	GNUTLS_EXTENSION_PSK_KE_MODES,
 	GNUTLS_EXTENSION_RECORD_SIZE_LIMIT,
 	GNUTLS_EXTENSION_MAX_RECORD_SIZE,
+	GNUTLS_EXTENSION_FIDO2, /* client hello extension for authentification via FIDO2 */
 	/*
 	 * pre_shared_key and dumbfw must always be the last extensions,
 	 * in that order */
@@ -1482,6 +1483,10 @@ typedef struct {
 	/* Protects _gnutls_epoch_gc() from _gnutls_epoch_get(); these may be
 	 * called in parallel when false start is used and false start is used. */
 	void *epoch_lock;
+	
+	/* fido2 stuff */
+	gnutls_fido2_config_t fido2_config;
+	gnutls_fido2_status_t fido2_status;
 
 	/* If you add anything here, check _gnutls_handshake_internal_state_clear().
 	 */
