@@ -1329,6 +1329,15 @@ GNUTLS_3_6_14
  global:
 	gnutls_ext_get_name2;
 	gnutls_pkcs7_print_signature_info;
+	gnutls_fido2_set_client; 
+	gnutls_fido2_set_server; 
+	gnutls_fido2_active; 
+	gnutls_fido2_client_authenticated;
+	gnutls_fido2_get_eph_user_name;
+	gnutls_fido2_generate_secret;
+	gnutls_fido2_get_auth_info;
+	gnutls_fido2_deinit_auth_info;
+	gnutls_fido2_perform_handshake;
 } GNUTLS_3_6_13;
 
 GNUTLS_FIPS140_3_4 {
