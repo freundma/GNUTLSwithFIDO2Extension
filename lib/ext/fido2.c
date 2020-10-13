@@ -635,6 +635,10 @@ int _gnutls_fido2_pack(gnutls_ext_priv_data_t epriv, gnutls_buffer_st *ps) {
   fido2_client_ext_st* priv_client = epriv;
   int ret;
 
+  if (!priv_server->entity) {
+    return 0;
+  }
+
   if (priv_server->entity == GNUTLS_SERVER) {
     ret = _gnutls_buffer_append_data(ps, (void*) &priv_server->entity, sizeof(unsigned int));
     if (ret < 0) {
@@ -668,6 +672,10 @@ int _gnutls_fido2_unpack(gnutls_buffer_st *ps, gnutls_ext_priv_data_t *epriv) {
   fido2_server_ext_st* priv;
   unsigned int entity;
   size_t length;
+
+  if (ps->length < 32) {
+    return 0;
+  }
 
   entity = _gnutls_read_uint32(ps->data);
   DECR_LEN(ps->length, 4);
