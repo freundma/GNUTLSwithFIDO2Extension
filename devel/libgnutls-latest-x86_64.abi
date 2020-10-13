@@ -2799,7 +2799,9 @@
       <enumerator name='STATE113' value='113'/>
       <enumerator name='STATE114' value='114'/>
       <enumerator name='STATE115' value='115'/>
-      <enumerator name='STATE150' value='116'/>
+      <enumerator name='STATE116' value='116'/>
+      <enumerator name='STATE117' value='117'/>
+      <enumerator name='STATE150' value='118'/>
     </enum-decl>
     <typedef-decl name='handshake_state_t' type-id='type-id-196' id='type-id-143'/>
     <class-decl name='gnutls_priority_st' size-in-bits='41792' is-struct='yes' visibility='default' id='type-id-197'>
