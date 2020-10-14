@@ -474,7 +474,12 @@ int _gnutls13_handshake_server(gnutls_session_t session)
 				ret = _gnutls13_send_fido2_request(session);
 		} else {
 			if (session->internals.fido2_config == GNUTLS_FIDO2_CONFIG_REQUIRED) {
-				return gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_REQUIRED);
+				ret =  gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_REQUIRED);
+				gnutls_assert();
+				if (ret < 0) {
+					return ret;
+				}
+				return GNUTLS_E_FIDO2_REQUIRED;
 			}
 		}
 		STATE = STATE103;
@@ -859,7 +864,12 @@ int _gnutls13_send_fido2_request(gnutls_session_t session) {
 
 	alert:
 		/* we do not allow PSKs in the second TFE-Handshake */
-		return gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_ILLEGAL_PARAMETER);
+		ret = gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_ILLEGAL_PARAMETER);
+		gnutls_assert();
+		if (ret < 0) {
+			return ret;
+		}
+		return GNUTLS_E_ILLEGAL_PARAMETER;
 }
 
 int _gnutls13_recv_fido2_request(gnutls_session_t session) {

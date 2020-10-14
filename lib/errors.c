@@ -73,7 +73,15 @@ static const gnutls_error_entry error_entries[] = {
 	ERROR_ENTRY(N_
 		    ("The specified session has been invalidated for some reason."),
 		    GNUTLS_E_INVALID_SESSION),
-
+	ERROR_ENTRY(N_
+			("A malformed TFE-Handshake message was sent."),
+			GNUTLS_E_FIDO2_BAD_REQUEST),
+	ERROR_ENTRY(N_
+			("Authentication via FIDO2 failed."),
+			GNUTLS_E_FIDO2_AUTHENTICATION_ERROR),
+	ERROR_ENTRY(N_
+			("The FIDO2 extension was not provided by the client."),
+			GNUTLS_E_FIDO2_REQUIRED),
 	ERROR_ENTRY(N_("GnuTLS internal error."), GNUTLS_E_INTERNAL_ERROR),
 	ERROR_ENTRY(N_(
 		    "A connection with inappropriate fallback was attempted."),

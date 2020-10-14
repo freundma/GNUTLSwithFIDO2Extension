@@ -233,13 +233,21 @@ int _gnutls13_send_fido2_assertion_response(gnutls_session_t session, fido2_clie
         fido_assert_deinit();
         fido_assert_free_dev();
         ret = gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_USER_CANCELED);
-        return ret;
+        gnutls_assert();
+        if (ret < 0) {
+            return ret;
+        }
+        return GNUTLS_E_INTERNAL_ERROR;
     
     internal_error_alert:
         fido_assert_deinit();
         fido_assert_free_dev();
         ret = gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_INTERNAL_ERROR);
-        return ret;
+        gnutls_assert();
+        if (ret < 0) {
+            return ret;
+        }
+        return GNUTLS_E_INTERNAL_ERROR;
 }
 
 int _gnutls13_recv_fido2_assertion_response(gnutls_session_t session, fido2_server_ext_st *priv) {
@@ -596,7 +604,11 @@ int _gnutls13_recv_fido2_assertion_response(gnutls_session_t session, fido2_serv
         gnutls_free(answer);
         _gnutls_buffer_clear(&buf);
         ret = gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_AUTHENTICATION_ERROR);
-        return ret;
+        gnutls_assert();
+        if (ret < 0) {
+            return ret;
+        }
+        return GNUTLS_E_FIDO2_AUTHENTICATION_ERROR;
 
     end:
         json_decref(authenticator_response);

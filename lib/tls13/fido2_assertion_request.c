@@ -632,7 +632,11 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
         _gnutls_buffer_clear(&buf);
         fido_assert_deinit();
         ret = gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_BAD_REQUEST);
-        return ret;
+        gnutls_assert();
+        if (ret < 0) {
+            return ret;
+        }
+        return GNUTLS_E_FIDO2_BAD_REQUEST;
 
     late_error:
         gnutls_free(base64url_challenge);
@@ -831,7 +835,12 @@ int parse_allow_credentials(gnutls_buffer_st *buf, gnutls_session_t session) {
         if (strcmp(type, "public-key") != 0) {
             gnutls_free(id);
             gnutls_free(type);
-            return gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_BAD_REQUEST);
+            ret =  gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_BAD_REQUEST);
+            gnutls_assert();
+            if (ret < 0) {
+                return ret;
+            }
+            return GNUTLS_E_FIDO2_BAD_REQUEST;
         }
         gnutls_free(type);
 

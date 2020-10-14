@@ -40,7 +40,6 @@ int main(void)
         gnutls_session_t session;
         char buffer[MAX_BUF + 1];
         const char *err;
-        gnutls_certificate_credentials_t xcred;
 
         if (gnutls_check_version("3.6.3") == NULL) {
                 fprintf(stderr, "GnuTLS 3.6.3 or later is required for this example\n");
@@ -56,21 +55,17 @@ int main(void)
         /* Initialize TLS session
          */
         CHECK(gnutls_init(&session, GNUTLS_CLIENT));
-
-        CHECK(gnutls_certificate_allocate_credentials(&xcred));
-        CHECK(gnutls_certificate_set_x509_system_trust(xcred));
         
         /* Perform TFE-Handshake:
          * Executes the simpel or doubled handshake with default priorities.
-         * To unlock the (ec)dhe groups for the handshake certificate credentials should
-         * be allocated. The authentication is done via FIDO2 though!
+         * To unlock the (ec)dhe groups for the handshake certificate credentials are
+         * allocated within the function. The authentication is done via FIDO2 though!
          * Note that this is only a wrapper to improve usibility. In fido2.c you can
          * change it in any way you want. In this case be aware that PSK authentication is
          * only allowed in the first handshake in FN mode.
          */
-        ret = gnutls_fido2_perform_handshake(&session, "mario#FN", GNUTLS_FIDO2_USER_NAME,
-                                        "localhost", &sd, GNUTLS_CRD_CERTIFICATE, &xcred,
-                                                "127.0.0.1", "5556", 0);
+        ret = gnutls_fido2_perform_handshake(&session, NULL, NONE,
+                                        "localhost", &sd, "127.0.0.1", "5556", 0);
 
         if (ret < 0) {
                 fprintf(stderr, "*** Handshake failed\n");
@@ -112,8 +107,6 @@ int main(void)
         tcp_close(sd);
 
         gnutls_deinit(session);
-
-        gnutls_certificate_free_credentials(xcred);
 
         gnutls_global_deinit();
 

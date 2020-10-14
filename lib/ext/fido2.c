@@ -250,7 +250,7 @@ _gnutls_fido2_check_eph_user_name(gnutls_session_t session,
        goto error;
   }
 
-  ret = sqlite3_bind_blob(res_select, 1, (void*) priv->eph_user_name, 32, SQLITE_STATIC);
+  ret = sqlite3_bind_blob(res_select, 1, (void*) priv->eph_user_name, sizeof(priv->eph_user_name), SQLITE_STATIC);
   if (ret != SQLITE_OK) {
       sqlite3_finalize(res_select);
       sqlite3_finalize(res_delete);
@@ -268,7 +268,7 @@ _gnutls_fido2_check_eph_user_name(gnutls_session_t session,
 
     strcpy(priv->username, sqlite3_column_text(res_select, 0));
 
-    ret = sqlite3_bind_text(res_delete, 1, (void*) priv->eph_user_name, sizeof(priv->eph_user_name), NULL);
+    ret = sqlite3_bind_blob(res_delete, 1, (void*) priv->eph_user_name, sizeof(priv->eph_user_name), SQLITE_STATIC);
     if (ret != SQLITE_OK) {
       sqlite3_finalize(res_select);
       sqlite3_finalize(res_delete);
@@ -311,11 +311,12 @@ _gnutls_fido2_check_eph_user_name(gnutls_session_t session,
     sqlite3_finalize(res_delete);
     sqlite3_close(db);
     ret = gnutls_alert_send(session, GNUTLS_AL_FATAL, GNUTLS_A_FIDO2_BAD_REQUEST);
+    gnutls_assert();
     if (ret < 0) {
-      gnutls_assert();
-      return GNUTLS_E_INTERNAL_ERROR;
+      return ret;
     }
-    return 0;
+    return GNUTLS_E_FIDO2_BAD_REQUEST;
+    
 }
 
 int
@@ -477,22 +478,35 @@ void gnutls_fido2_deinit_auth_info(gnutls_fido2_info_t* info) {
 
 int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
                                     gnutls_fido2_name_type name_type, char* server_domain,
-                                      int* sd, gnutls_credentials_type_t type, void **cred,
-                                        char* ip, char* port, int verify_cert)
+                                      int* sd, char* ip, char* port, int verify_cert)
 {
   int ret;
+  gnutls_certificate_credentials_t xcred;
 
-  /* default priorities */
-  ret = gnutls_set_default_priority(*session);
+  ret = gnutls_certificate_allocate_credentials(&xcred);
   if (ret < 0) {
     gnutls_assert();
     return ret;
   }
 
-  ret = gnutls_credentials_set(*session, type, *cred);
+  ret = gnutls_certificate_set_x509_system_trust(xcred);
   if (ret < 0) {
     gnutls_assert();
-    return ret;
+    goto end;
+  }
+
+  /* default priorities */
+  ret = gnutls_set_default_priority(*session);
+  if (ret < 0) {
+    gnutls_assert();
+    goto end;
+  }
+
+  /* x509 credentials for (ec)dh-groups and gaining the eventual server cert */
+  ret = gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, xcred);
+  if (ret < 0) {
+    gnutls_assert();
+    goto end;
   }
 
   if (verify_cert) {
@@ -500,7 +514,7 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
                                   server_domain, strlen(server_domain));
     if (ret < 0) {
       gnutls_assert();
-      return ret;
+      goto end;
     }
 
     gnutls_session_set_verify_cert(*session, server_domain, 0);
@@ -508,6 +522,11 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
 
 
   *sd = tcp_connect(ip, port);
+  if (*sd  < 0) {
+    ret = GNUTLS_E_SOCKETS_INIT_ERROR;
+    gnutls_assert();
+    goto end;
+  }
 
   gnutls_transport_set_int(*session, *sd);
   gnutls_handshake_set_timeout(*session, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
@@ -515,7 +534,7 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
   ret = gnutls_fido2_set_client(*session, name, name_type, server_domain);
   if (ret < 0) {
     gnutls_assert();
-    return ret;
+    goto end;
   }
 
   do {
@@ -524,27 +543,28 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
   while (ret < 0 && gnutls_error_is_fatal(ret) == 0);
   if (ret < 0) {
     gnutls_assert();
-    return ret;
+    goto end;
   }
 
   if (name_type == GNUTLS_FIDO2_USER_NAME) {
     uint8_t* eph_user_name = gnutls_malloc(32);
     if (eph_user_name == NULL) {
       gnutls_assert();
-      return GNUTLS_E_MEMORY_ERROR;
+      ret = GNUTLS_E_MEMORY_ERROR;
+      goto end;
     }
     ret = gnutls_fido2_get_eph_user_name(*session, eph_user_name);
     if (ret < 0) {
       gnutls_free(eph_user_name);
       gnutls_assert();
-      return ret;
+      goto end;
     }
 
     ret = gnutls_bye(*session, GNUTLS_SHUT_RDWR);
     if (ret < 0) {
       gnutls_free(eph_user_name);
       gnutls_assert();
-      return ret;
+      goto end;
     }
     tcp_close(*sd);
     gnutls_deinit(*session);
@@ -556,21 +576,21 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
     if (ret < 0) {
       gnutls_free(eph_user_name);
       gnutls_assert();
-      return ret;
+      goto end;
     }
 
     ret = gnutls_set_default_priority(*session);
     if (ret < 0) {
       gnutls_free(eph_user_name);
       gnutls_assert();
-      return ret;
+      goto end;
     }
 
-    ret = gnutls_credentials_set(*session, type, *cred);
+    ret = gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, xcred);
     if (ret < 0) {
       gnutls_free(eph_user_name);
       gnutls_assert();
-      return ret;
+      goto end;
     }
 
     if (verify_cert) {
@@ -578,10 +598,10 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
                                     server_domain, strlen(server_domain));
       if (ret < 0) {
         gnutls_assert();
-        return ret;
+        goto end;
       }
 
-    gnutls_session_set_verify_cert(*session, server_domain, 0);
+      gnutls_session_set_verify_cert(*session, server_domain, 0);
     }
     
     /* FIDO2 */
@@ -589,6 +609,11 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
     gnutls_free(eph_user_name);
 
     *sd = tcp_connect(ip, port);
+    if (*sd < 0) {
+      ret = GNUTLS_E_SOCKETS_INIT_ERROR;
+      gnutls_assert();
+      goto end;
+    }
 
     gnutls_transport_set_int(*session, *sd);
     gnutls_handshake_set_timeout(*session, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
@@ -599,12 +624,13 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
     while (ret < 0 && gnutls_error_is_fatal(ret) == 0);
     if (ret < 0) {
       gnutls_assert();
-      return ret;
+      goto end;
     }
-
   }
 
-  return ret;
+  end:
+    gnutls_certificate_free_credentials(xcred);
+    return ret;
 }
 
 

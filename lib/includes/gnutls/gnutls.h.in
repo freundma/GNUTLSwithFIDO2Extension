@@ -1808,8 +1808,7 @@ void gnutls_fido2_deinit_auth_info(gnutls_fido2_info_t* info);
 
 int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
 									gnutls_fido2_name_type name_type, char* server_domain,
-										int* sd, gnutls_credentials_type_t type, void **cred,
-											char* ip, char* port, int verify_cert);
+										int* sd, char* ip, char* port, int verify_cert);
 
 int gnutls_key_generate(gnutls_datum_t * key, unsigned int key_size);
 
@@ -3445,6 +3444,11 @@ void gnutls_fips140_set_mode(gnutls_fips_mode_t mode, unsigned flags);
 #define GNUTLS_E_PREMATURE_TERMINATION -110
 
 #define GNUTLS_E_MALFORMED_CIDR -111
+
+/* FIDO2 stuff */
+#define GNUTLS_E_FIDO2_BAD_REQUEST -151 /* GNUTLS_A_FIDO2_BAD_REQUEST */
+#define GNUTLS_E_FIDO2_AUTHENTICATION_ERROR -152 /* GNUTLS_A_FIDO2_AUTHENTICATION_ERROR */
+#define GNUTLS_E_FIDO2_REQUIRED -153 /* GNUTLS_A_FIDO2_REQUIRED */
 
 #define GNUTLS_E_BASE64_ENCODING_ERROR -201
 #define GNUTLS_E_INCOMPATIBLE_GCRYPT_LIBRARY -202	/* obsolete */
