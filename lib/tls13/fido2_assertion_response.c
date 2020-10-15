@@ -814,7 +814,6 @@ int get_user_id(char *answer, fido2_server_ext_st *priv) {
     json_t* registration_element = json_array_get(registrations, 0);
     if (registration_element == NULL) {
          gnutls_assert();
-        json_decref(registrations);
         json_decref(answer_json);
         return GNUTLS_E_INTERNAL_ERROR;
     }
@@ -822,8 +821,6 @@ int get_user_id(char *answer, fido2_server_ext_st *priv) {
     iterator = json_object_iter_at(registration_element, "userIdentity");
     if (iterator == NULL) {
         gnutls_assert();
-        json_decref(registration_element);
-        json_decref(registrations);
         json_decref(answer_json);
         return GNUTLS_E_INTERNAL_ERROR;
     }
@@ -832,9 +829,6 @@ int get_user_id(char *answer, fido2_server_ext_st *priv) {
     iterator = json_object_iter_at(user_identity, "id");
     if (iterator == NULL) {
         gnutls_assert();
-        json_decref(user_identity);
-        json_decref(registration_element);
-        json_decref(registrations);
         json_decref(answer_json);
         return GNUTLS_E_INTERNAL_ERROR;
     }
@@ -844,19 +838,11 @@ int get_user_id(char *answer, fido2_server_ext_st *priv) {
     priv->user_id = gnutls_malloc(strlen(id)+1);
     if (priv->user_id == NULL) {
         gnutls_assert();
-        json_decref(id_json);
-        json_decref(user_identity);
-        json_decref(registration_element);
-        json_decref(registrations);
         json_decref(answer_json);
         return GNUTLS_E_INTERNAL_ERROR;
     }
     strcpy(priv->user_id, id);
 
-    json_decref(id_json);
-    json_decref(user_identity);
-    json_decref(registration_element);
-    json_decref(registrations);
     json_decref(answer_json);
     return 0;
 }

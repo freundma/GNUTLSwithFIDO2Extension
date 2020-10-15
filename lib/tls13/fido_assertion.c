@@ -124,12 +124,12 @@ extern int fido_assert_generate(void)
     fido_dev_info_t *devlist;
     size_t ndevs;
 
-    devlist = fido_dev_info_new(2);
+    devlist = fido_dev_info_new(1);
     if (devlist == NULL) {
         return -1;
     }
 
-    ret = fido_dev_info_manifest(devlist, 2, &ndevs);
+    ret = fido_dev_info_manifest(devlist, 1, &ndevs);
     if (ret != FIDO_OK) {
         fido_dev_info_free(&devlist, ndevs);
         return -1;

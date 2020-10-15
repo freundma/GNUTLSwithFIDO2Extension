@@ -85,10 +85,12 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
         if (url_username == NULL) {
             gnutls_assert();
             ret = GNUTLS_E_INTERNAL_ERROR;
+            curl_easy_cleanup(curl);
             goto rp_error;
         }
         sprintf(fn_msg, AUTHENTICATE_FN_MSG, strlen(url_username) + 9, url_username);
         curl_free(url_username);
+        curl_easy_cleanup(curl);
         LOOP_CHECK(ret, gnutls_record_send(*priv->rp_session, fn_msg, strlen(fn_msg)));
         if (ret < 0) {
             gnutls_assert();
@@ -165,7 +167,6 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     iterator = json_object_iter_at(request, "requestId");
     if (iterator == NULL) {
         json_decref(json);
-        json_decref(request);
         gnutls_assert();
         ret = GNUTLS_E_INTERNAL_ERROR;
         goto cleanup;
@@ -174,8 +175,6 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     priv->request_id = gnutls_malloc(strlen(json_string_value(request_id))+1);
     if (priv->request_id == NULL) {
         json_decref(json);
-        json_decref(request);
-        json_decref(request_id);
         gnutls_assert();
         ret = GNUTLS_E_MEMORY_ERROR;
         goto cleanup;
@@ -186,8 +185,6 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     iterator = json_object_iter_at(request, "publicKeyCredentialRequestOptions");
     if (iterator == NULL) {
         json_decref(json);
-        json_decref(request);
-        json_decref(request_id);
         gnutls_assert();
         ret = GNUTLS_E_INTERNAL_ERROR;
         goto cleanup;
@@ -198,9 +195,6 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     iterator = json_object_iter_at(pKCRO, "challenge");
     if (iterator == NULL) {
         json_decref(json);
-        json_decref(request);
-        json_decref(request_id);
-        json_decref(pKCRO);
         gnutls_assert();
         ret = GNUTLS_E_INTERNAL_ERROR;
         goto cleanup;
@@ -296,10 +290,6 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     ret = _gnutls_send_handshake(session, bufel, GNUTLS_HANDSHAKE_FIDO2_ASSERTION_REQUEST);
 
     json_decref(json);
-    json_decref(request);
-    json_decref(request_id);
-    json_decref(pKCRO);
-    json_decref(challenge_json);
 
     cleanup:
         _gnutls_buffer_clear(&buf);
@@ -313,13 +303,6 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     
     error:
         json_decref(json);
-        json_decref(request);
-        json_decref(request_id);
-        json_decref(pKCRO);
-        json_decref(challenge_json);
-        if (user_verification) {
-            json_decref(uV_json);
-        }
         _gnutls_buffer_clear(&buf);
         return ret;
 }
@@ -718,7 +701,6 @@ int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json) {
     size_t transports_number = 0;
     ret = _gnutls_buffer_append_data(buf, &number, 1);
     if (ret < 0) {
-        json_decref(aC_json);
         gnutls_assert();
         return ret;
     }
@@ -736,7 +718,7 @@ int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json) {
         if (id == NULL) {
             gnutls_assert();
             ret = GNUTLS_E_MEMORY_ERROR;
-            goto error;
+            return ret;
         }
         base64_decode_update(&ctx, &decode_length, id, strlen(id_base64url), id_base64url);
 
@@ -744,36 +726,25 @@ int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json) {
         if (ret < 0) {
             gnutls_assert();
             gnutls_free(id);
-            goto error;
+            return ret;
         }
         ret = _gnutls_buffer_append_data_prefix(buf, 8, (void*) type, strlen(type) + 1);
         if (ret < 0) {
             gnutls_assert();
             gnutls_free(id);
-            goto error;
+            return ret;
         }
 
         ret =_gnutls_buffer_append_data(buf, &transports_number, 1); /* no transports */
         if (ret < 0) {
             gnutls_assert();
             gnutls_free(id);
-            goto error;
+            return ret;
         }
         
         gnutls_free(id);
-        json_decref(value_json);
-        json_decref(id_json);
-        json_decref(type_json);
     }
-    json_decref(aC_json);
     return ret;
-
-    error:
-        json_decref(id_json);
-        json_decref(type_json);
-        json_decref(value_json);
-        json_decref(aC_json);
-        return ret;
 }
 
 int parse_allow_credentials(gnutls_buffer_st *buf, gnutls_session_t session) {

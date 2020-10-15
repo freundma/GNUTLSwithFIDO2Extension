@@ -546,7 +546,7 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
     goto end;
   }
 
-  if (name_type == GNUTLS_FIDO2_USER_NAME) {
+  if (name_type == GNUTLS_FIDO2_USER_NAME && gnutls_fido2_active(*session)) {
     uint8_t* eph_user_name = gnutls_malloc(32);
     if (eph_user_name == NULL) {
       gnutls_assert();

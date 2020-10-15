@@ -132,7 +132,7 @@ int main(void)
         CHECK(gnutls_fido2_generate_secret(secret));
 
         client_len = sizeof(sa_cli);
-        for (;;) {
+        for (int i = 0; i < 1; i++) {
                 CHECK(gnutls_init(&session, GNUTLS_SERVER));
                 CHECK(gnutls_priority_set(session, priority_cache));
                 CHECK(gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE,
@@ -175,17 +175,20 @@ int main(void)
                     goto end;
                 }
 
-                gnutls_fido2_info_t* auth_info = gnutls_fido2_get_auth_info(session);
-                printf("- Client authenticated using FIDO2:\n");
-                if (auth_info->mode == GNUTLS_FIDO2_MODE_FI) {
-                        printf("  -- mode: FI\n");
-                } else {
-                        printf("  -- mode: FN\n");
-                }
-                printf("  -- user ID: %s\n", auth_info->user_id);
-                printf("  -- request ID: %s\n", auth_info->request_id);
+                if (gnutls_fido2_active(session)) {
+                        gnutls_fido2_info_t* auth_info = gnutls_fido2_get_auth_info(session);
+                        printf("- Client authenticated using FIDO2:\n");
+                        if (auth_info->mode == GNUTLS_FIDO2_MODE_FI) {
+                                printf("  -- mode: FI\n");
+                        } else {
+                                printf("  -- mode: FN\n");
+                        }
+                        printf("  -- user ID: %s\n", auth_info->user_id);
+                        printf("  -- request ID: %s\n", auth_info->request_id);
 
-                gnutls_fido2_deinit_auth_info(auth_info);
+                        gnutls_fido2_deinit_auth_info(auth_info);
+                }
+                
 
                 /* see the Getting peer's information example */
                 /* print_info(session); */
@@ -223,14 +226,12 @@ int main(void)
                     gnutls_deinit(session);
 
         }
-        absolute_end:
-                close(listen_sd);
+        close(listen_sd);
 
-                gnutls_certificate_free_credentials(x509_cred);
-                gnutls_priority_deinit(priority_cache);
+        gnutls_certificate_free_credentials(x509_cred);
+        gnutls_priority_deinit(priority_cache);
 
-                gnutls_global_deinit();
-
-                return 0;
+        gnutls_global_deinit();
+        return 0;
 
 }
