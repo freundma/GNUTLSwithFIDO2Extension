@@ -37,8 +37,7 @@
  */
 //#define OCSP_STATUS_FILE "ocsp-status.der"
 
-/* This is a sample TLS 1.0 echo server, using X.509 authentication and
- * OCSP stapling support.
+/* This is a sample TLS 1.3 echo server, using FIDO2 authentication.
  */
 
 #define MAX_BUF 1024
@@ -58,16 +57,12 @@ int main(void)
         char topbuf[512];
         gnutls_session_t session;
         gnutls_session_t rp_session;
-        int rp_sd;
         char buffer[MAX_BUF + 1];
         int optval = 1;
         uint8_t secret[32];
 
         /* for backwards compatibility with gnutls < 3.3.0 */
         CHECK(gnutls_global_init());
-
-        /*gnutls_global_set_log_level(10);
-        gnutls_global_set_log_function(&logging);*/
 
         CHECK(gnutls_certificate_allocate_credentials(&x509_cred));
 
@@ -132,7 +127,7 @@ int main(void)
         CHECK(gnutls_fido2_generate_secret(secret));
 
         client_len = sizeof(sa_cli);
-        for (int i = 0; i < 1; i++) {
+        for (;;) {
                 CHECK(gnutls_init(&session, GNUTLS_SERVER));
                 CHECK(gnutls_priority_set(session, priority_cache));
                 CHECK(gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE,
