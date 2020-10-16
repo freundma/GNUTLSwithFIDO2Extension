@@ -827,7 +827,8 @@ int gnutls_session_ticket_send(gnutls_session_t session, unsigned nr, unsigned f
 	return 0;
 }
 
-int _gnutls13_send_fido2_request(gnutls_session_t session) {
+int _gnutls13_send_fido2_request(gnutls_session_t session)
+{
 	int ret;
 	fido2_server_ext_st *priv;
 	gnutls_ext_priv_data_t epriv;
@@ -872,7 +873,8 @@ int _gnutls13_send_fido2_request(gnutls_session_t session) {
 		return GNUTLS_E_ILLEGAL_PARAMETER;
 }
 
-int _gnutls13_recv_fido2_request(gnutls_session_t session) {
+int _gnutls13_recv_fido2_request(gnutls_session_t session)
+{
 	int ret;
 	fido2_client_ext_st *priv;
 	gnutls_ext_priv_data_t epriv;
@@ -902,7 +904,8 @@ int _gnutls13_recv_fido2_request(gnutls_session_t session) {
 	return ret;
 }
 
-int _gnutls13_send_fido2_response(gnutls_session_t session) {
+int _gnutls13_send_fido2_response(gnutls_session_t session)
+{
 	int ret;
 	fido2_client_ext_st *priv;
 	gnutls_ext_priv_data_t epriv;
@@ -932,7 +935,8 @@ int _gnutls13_send_fido2_response(gnutls_session_t session) {
 	return ret;
 }
 
-int _gnutls13_recv_fido2_response(gnutls_session_t session) {
+int _gnutls13_recv_fido2_response(gnutls_session_t session)
+{
 	int ret;
 	fido2_server_ext_st *priv;
 	gnutls_ext_priv_data_t epriv;

@@ -34,11 +34,29 @@ const hello_ext_entry_st ext_mod_fido2 = {
 	.cannot_be_overriden = 1
 };
 
+/**
+ * gnutls_fido2_set_client:
+ * @session: is a #gnutls_session_t type
+ * @name: is either a proper username, an ephemeral username or NULL in case of FI mode
+ * @name_type: is the type of name
+ * @server_domain: is the domain of the server to connect to
+ * 
+ * This function sets up the FIDO2 extension for the client. In the handshake the client will
+ * send the FIDO2 client hello extension in order to authenticate itself via FIDO2. If you
+ * want to use the FI mode you have to set @name to NULL and @name_type to NONE.
+ * If you want to use the FN mode and have an ephemeral username you have to set @name up
+ * with the pointer to the ephemeral username (usually uint8_t*) and set @name_type to
+ * %GNUTLS_FIDO2_EPH_USER_NAME.
+ * If you want to use FN mode and do not have an ephemeral username you set @name to the longterm
+ * username (usually char*) and set @name_type to %GNUTLS_FIDO2_USER_NAME.
+ * 
+ * Returns: On success, %GNUTLS_E_SUCCESS (0) is returned, otherwise an error code is returned.
+ **/ 
 int
 gnutls_fido2_set_client(gnutls_session_t session,
                   uint8_t* name,
-                  gnutls_fido2_name_type name_type,
-                  char* server_domain)
+                  gnutls_fido2_name_t name_type,
+                  const char* server_domain)
 {
   fido2_client_ext_st *priv;
   gnutls_ext_priv_data_t epriv;
@@ -91,9 +109,28 @@ gnutls_fido2_set_client(gnutls_session_t session,
 
 }
 
+/**
+ * gnutls_fido2_set_server:
+ * @session: is a #gnutls_session_t type
+ * @config: is the configuration how to handle fido2 client hello extensions
+ * @rp_session: is a pointer to #gnutls_session_t type
+ * @rp_ip: is the ip of the WebAuthn server/ RP server
+ * @rp_port: is the port of the WebAuthn server/ RP server
+ * @db_location: is a path to a sqlite3 db
+ * @rpid: is the RP-ID to be used for fido2 operations
+ * @secret: is a secret (32 Bytes recommended)
+ * 
+ * This function will set up the server for the FIDO2 extension. The @config can be set
+ * to #GNUTLS_FIDO2_CONFIG_DISABLED, #GNUTLS_FIDO2_CONFIG_ALLOWED and 
+ * #GNUTLS_FIDO2_CONFIG_REQUIRED. If you choose to disable fido2 (it is disabled by default)
+ * the other parameters can be ignored. The @secret is used for generating random allow credentials
+ * if no user is registered under the provided username.
+ * 
+ * Returns: On success, %GNUTLS_E_SUCCESS (0) is returned, otherwise an error code is returned.
+ **/
 int gnutls_fido2_set_server(gnutls_session_t session, gnutls_fido2_config_t config,
-								gnutls_session_t* rp_session, char* rp_ip, char* rp_port,
-									char* db_location, char* rpid, uint8_t *secret)
+								gnutls_session_t* rp_session, const char* rp_ip, const char* rp_port,
+									const char* db_location, const char* rpid, const uint8_t *secret)
 {
   if (session->security_parameters.entity == GNUTLS_CLIENT) {
     gnutls_assert();
@@ -362,11 +399,30 @@ _gnutls_fido2_send_params (gnutls_session_t session,
   }  
 }
 
-bool gnutls_fido2_active(gnutls_session_t session) {
+/**
+ * gnutls_fido2_active:
+ * @session: is a #gnutls_session_t type
+ * 
+ * Returns: Returns %true if FIDO2 is used/ was used for authentication in this @session,
+ * otherwise %false.
+ **/
+bool gnutls_fido2_active(gnutls_session_t session)
+{
   return session->internals.fido2_status == GNUTLS_FIDO2_STATUS_ACTIVE;
 }
 
-int gnutls_fido2_client_authenticated(gnutls_session_t session) {
+/**
+ * gnutls_fido2_client_authenticated:
+ * @session: is a #gnutls_session_t type
+ * 
+ * This function can be used to check whether the client could get authenticated within
+ * the @session.
+ * 
+ * Returns: If yes %GNUTLS_E_SUCCESS (0) is returned, otherwise -1 is returned.
+ * On an error a negative error code is returned.
+ **/
+int gnutls_fido2_client_authenticated(gnutls_session_t session)
+{
   if (session->security_parameters.entity == GNUTLS_CLIENT) {
     gnutls_assert();
     return GNUTLS_E_INVALID_REQUEST;
@@ -392,7 +448,18 @@ int gnutls_fido2_client_authenticated(gnutls_session_t session) {
   return -1;
 }
 
-int gnutls_fido2_get_eph_user_name(gnutls_session_t session, uint8_t* eph_user_name) {
+/**
+ * gnutls_fido2_get_eph_user_name:
+ * @session: is a #gnutls_session_t type
+ * @eph_user_name: is a #uint8_t* pointer of at least 32 Bytes
+ * 
+ * This function stores the negotiated ephemeral username in @eph_user_name. You should only
+ * use this function when FIDO2 is active and after the handshake is finished.
+ * 
+ * Returns: On success, %GNUTLS_E_SUCCESS (0) is returned, otherwise an error code is returned.
+ **/
+int gnutls_fido2_get_eph_user_name(gnutls_session_t session, uint8_t* eph_user_name)
+{
   if (session->security_parameters.entity == GNUTLS_SERVER) {
     gnutls_assert();
     return GNUTLS_E_INVALID_REQUEST;
@@ -416,11 +483,31 @@ int gnutls_fido2_get_eph_user_name(gnutls_session_t session, uint8_t* eph_user_n
   return ret;
 }
 
-int gnutls_fido2_generate_secret(uint8_t* secret) {
+/**
+ * gnutls_fido2_generate_secret:
+ * @secret: is a #uint8_t* pointer of at least 32 Bytes
+ * 
+ * This function can be used to generate a 32 Byte random secret and store it in
+ * @secret.
+ * 
+ * Returns: On success, %GNUTLS_E_SUCCESS (0) is returned, otherwise an error code is returned.
+ **/
+int gnutls_fido2_generate_secret(uint8_t* secret)
+{
   return (gnutls_rnd(GNUTLS_RND_RANDOM, (void*) secret, 32));
 }
 
-gnutls_fido2_info_t * gnutls_fido2_get_auth_info(gnutls_session_t session) {
+/**
+ * gnutls_fido2_get_auth_info:
+ * @session: is a #gnutls_session_t type
+ * 
+ * This function returns authentication information and returns it as a pointer to
+ * #gnutls_fido2_info_t.
+ * 
+ * Returns: On success, the #gnutls_fido2_info_t* is returned, otherwise NULL is returned.
+ **/
+gnutls_fido2_info_t * gnutls_fido2_get_auth_info(gnutls_session_t session)
+{
   int ret;
   gnutls_fido2_info_t* info;
   if (session->security_parameters.entity == GNUTLS_CLIENT) {
@@ -470,15 +557,43 @@ gnutls_fido2_info_t * gnutls_fido2_get_auth_info(gnutls_session_t session) {
 
 }
 
-void gnutls_fido2_deinit_auth_info(gnutls_fido2_info_t* info) {
+/**
+ * gnutls_fido2_deinit_auth_info:
+ * @info: is a pointer to a #gnutls_session_t type
+ * 
+ * This function deallocates the authentication info.
+ **/
+void gnutls_fido2_deinit_auth_info(gnutls_fido2_info_t* info)
+{
   gnutls_free(info->user_id);
   gnutls_free(info->request_id);
   gnutls_free(info);
 }
 
+/**
+ * gnutls_fido2_perform_handshake:
+ * @session: is a pointer to #gnutls_session_t type
+ * @name: is either a proper username, an ephemeral username or NULL in case of FI mode
+ * @name_type: is the type of name
+ * @server_domain: is the domain of the server to connect to
+ * @sd: is a pointer to a socket descriptor
+ * @ip: is the ip of the server to connect to
+ * @port: is the port to the server to connect to
+ * @verify_cert: is a flag whether the server certificate shall be verified
+ * 
+ * This function performs the single or doubled handshake for the client and
+ * can be seen as a wrapper for better usibility. Certificate credentials are 
+ * allocated for the handshake in order unlock the (ec)dhe-groups and be able
+ * to verifiy the server certificate. The authentication is done via FIDO2 (if
+ * the server allows it). If @verifiy_cert is set to a value !0, the certificate of the server
+ * will get verified.
+ * 
+ * Returns: On success, %GNUTLS_E_SUCCESS (0) is returned, otherwise
+ * an error code is returned.
+ **/
 int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
-                                    gnutls_fido2_name_type name_type, char* server_domain,
-                                      int* sd, char* ip, char* port, int verify_cert)
+                                    gnutls_fido2_name_t name_type, const char* server_domain,
+                                      int* sd, const char* ip, const char* port, int verify_cert)
 {
   int ret;
   gnutls_certificate_credentials_t xcred;
@@ -634,7 +749,8 @@ int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
 }
 
 
-void _gnutls_fido2_deinit_data (gnutls_ext_priv_data_t epriv) {
+void _gnutls_fido2_deinit_data (gnutls_ext_priv_data_t epriv)
+{
   fido2_server_ext_st* priv_server = epriv;
   fido2_client_ext_st* priv_client = epriv;
 
@@ -656,7 +772,8 @@ void _gnutls_fido2_deinit_data (gnutls_ext_priv_data_t epriv) {
   }
 }
 
-int _gnutls_fido2_pack(gnutls_ext_priv_data_t epriv, gnutls_buffer_st *ps) {
+int _gnutls_fido2_pack(gnutls_ext_priv_data_t epriv, gnutls_buffer_st *ps)
+{
   fido2_server_ext_st* priv_server = epriv;
   fido2_client_ext_st* priv_client = epriv;
   int ret;

@@ -646,6 +646,10 @@ typedef enum {
  * @GNUTLS_HANDSHAKE_FINISHED: Finished.
  * @GNUTLS_HANDSHAKE_CERTIFICATE_STATUS: Certificate status (OCSP).
  * @GNUTLS_HANDSHAKE_KEY_UPDATE: TLS1.3 key update message.
+ * @GNUTLS_HANDSHAKE_FIDO2_NAME_REQUEST: FIDO2 name request.
+ * @GNUTLS_HANDSHAKE_FIDO2_NAME_RESPONSE: FIDO2 name response.
+ * @GNUTLS_HANDSHAKE_FIDO2_ASSERTION_REQUEST: FIDO2 assertion request.
+ * @GNUTLS_HANDSHAKE_FIDO2_ASSERTION_RESPONSE: FIDO2 assertion response.
  * @GNUTLS_HANDSHAKE_SUPPLEMENTAL: Supplemental.
  * @GNUTLS_HANDSHAKE_CHANGE_CIPHER_SPEC: Change Cipher Spec.
  * @GNUTLS_HANDSHAKE_CLIENT_HELLO_V2: SSLv2 Client Hello.
@@ -1738,7 +1742,7 @@ typedef enum {
 	NONE,
 	GNUTLS_FIDO2_USER_NAME,
 	GNUTLS_FIDO2_EPH_USER_NAME
-} gnutls_fido2_name_type;
+} gnutls_fido2_name_t;
 
 typedef enum {
 	GNUTLS_FIDO2_EPH_USER_NAME_GIVEN = 1<<7
@@ -1788,11 +1792,11 @@ typedef struct {
 } gnutls_fido2_info_t;
 
 int gnutls_fido2_set_client(gnutls_session_t session, uint8_t *name,
-							gnutls_fido2_name_type name_type, char *server_domain);
+							gnutls_fido2_name_t name_type, const char *server_domain);
 
 int gnutls_fido2_set_server(gnutls_session_t session, gnutls_fido2_config_t config,
-								gnutls_session_t *rp_session, char *rp_ip, char *rp_port,
-									char *db_location, char *rpid, uint8_t *secret);
+								gnutls_session_t *rp_session, const char *rp_ip, const char *rp_port,
+									const char *db_location, const char *rpid, const uint8_t *secret);
 
 bool gnutls_fido2_active(gnutls_session_t session);
 
@@ -1804,11 +1808,11 @@ int gnutls_fido2_generate_secret(uint8_t *secret);
 
 gnutls_fido2_info_t * gnutls_fido2_get_auth_info(gnutls_session_t session);
 
-void gnutls_fido2_deinit_auth_info(gnutls_fido2_info_t* info);
+void gnutls_fido2_deinit_auth_info(gnutls_fido2_info_t *info);
 
-int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t* name,
-									gnutls_fido2_name_type name_type, char* server_domain,
-										int* sd, char* ip, char* port, int verify_cert);
+int gnutls_fido2_perform_handshake(gnutls_session_t *session, uint8_t *name,
+									gnutls_fido2_name_t name_type, const char *server_domain,
+										int *sd, const char *ip, const char *port, int verify_cert);
 
 int gnutls_key_generate(gnutls_datum_t * key, unsigned int key_size);
 

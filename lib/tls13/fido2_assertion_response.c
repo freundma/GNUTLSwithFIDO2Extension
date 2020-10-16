@@ -38,7 +38,8 @@ int parse_client_extensions_output(gnutls_buffer_st *buf);
 
 int get_user_id(char *answer, fido2_server_ext_st *priv);
 
-int _gnutls13_send_fido2_assertion_response(gnutls_session_t session, fido2_client_ext_st *priv) {
+int _gnutls13_send_fido2_assertion_response(gnutls_session_t session, fido2_client_ext_st *priv)
+{
     int ret;
     uint8_t flags = GNUTLS_FIDO2_SELECTED_CREDENTIAL_ID_SET;
     gnutls_buffer_st buf;
@@ -250,7 +251,8 @@ int _gnutls13_send_fido2_assertion_response(gnutls_session_t session, fido2_clie
         return GNUTLS_E_INTERNAL_ERROR;
 }
 
-int _gnutls13_recv_fido2_assertion_response(gnutls_session_t session, fido2_server_ext_st *priv) {
+int _gnutls13_recv_fido2_assertion_response(gnutls_session_t session, fido2_server_ext_st *priv)
+{
     gnutls_buffer_st buf;
     int ret;
     uint8_t flags;
@@ -622,7 +624,8 @@ int _gnutls13_recv_fido2_assertion_response(gnutls_session_t session, fido2_serv
         return ret;
 }
 
-int set_json_base64url(json_t* object, uint8_t* data, size_t length, const char* key) {
+int set_json_base64url(json_t* object, uint8_t* data, size_t length, const char* key)
+{
     int ret;
     struct base64_encode_ctx ctx;
 
@@ -653,7 +656,8 @@ int set_json_base64url(json_t* object, uint8_t* data, size_t length, const char*
     return ret;
 }
 
-int parse_authenticator_data(gnutls_buffer_st* buf, uint8_t* auth_data) {
+int parse_authenticator_data(gnutls_buffer_st* buf, uint8_t* auth_data)
+{
     size_t number;
     size_t length;
     uint8_t flags;
@@ -751,7 +755,8 @@ int parse_authenticator_data(gnutls_buffer_st* buf, uint8_t* auth_data) {
     return 0;
 }
 
-int parse_client_extensions_output(gnutls_buffer_st* buf) {
+int parse_client_extensions_output(gnutls_buffer_st* buf)
+{
     size_t number;
     size_t length;
     
@@ -790,7 +795,8 @@ int parse_client_extensions_output(gnutls_buffer_st* buf) {
     return 0;
 }
 
-int get_user_id(char *answer, fido2_server_ext_st *priv) {
+int get_user_id(char *answer, fido2_server_ext_st *priv)
+{
     char* help;
 
     help = strchr(answer, '{'); /* beginning of json object */

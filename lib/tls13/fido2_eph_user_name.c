@@ -1,7 +1,8 @@
 #include "tls13/fido2_eph_user_name.h"
 #include <sqlite3.h>
 
-int _gnutls13_fido2_set_eph_user_name_server_share(gnutls_buffer_st* buf, fido2_server_ext_st* priv) {
+int _gnutls13_fido2_set_eph_user_name_server_share(gnutls_buffer_st* buf, fido2_server_ext_st* priv)
+{
     int ret;
 
     /* generating 32 Byte server share for ephemeral username */
@@ -21,7 +22,8 @@ int _gnutls13_fido2_set_eph_user_name_server_share(gnutls_buffer_st* buf, fido2_
     return ret;
 }
 
-int _gnutls13_fido2_parse_eph_user_name_server_share(gnutls_buffer_st* buf, fido2_client_ext_st* priv) {
+int _gnutls13_fido2_parse_eph_user_name_server_share(gnutls_buffer_st* buf, fido2_client_ext_st* priv)
+{
     int ret;
     uint8_t eph_user_name_server_share[32];
     uint8_t concatenated_shares[64];
@@ -52,7 +54,8 @@ int _gnutls13_fido2_parse_eph_user_name_server_share(gnutls_buffer_st* buf, fido
     return ret;
 }
 
-int _gnutls13_fido2_set_eph_user_name_client_share(gnutls_buffer_st* buf, fido2_client_ext_st* priv) {
+int _gnutls13_fido2_set_eph_user_name_client_share(gnutls_buffer_st* buf, fido2_client_ext_st* priv)
+{
     int ret;
 
     /* append client share for ephemeral user name */
@@ -65,7 +68,8 @@ int _gnutls13_fido2_set_eph_user_name_client_share(gnutls_buffer_st* buf, fido2_
     return ret;
 }
 
-int _gnutls13_fido2_parse_eph_user_name_client_share(gnutls_buffer_st* buf, fido2_server_ext_st* priv) {
+int _gnutls13_fido2_parse_eph_user_name_client_share(gnutls_buffer_st* buf, fido2_server_ext_st* priv)
+{
     int ret;
     uint8_t eph_user_name_client_share[32];
     uint8_t concatenated_shares[64];
@@ -92,7 +96,8 @@ int _gnutls13_fido2_parse_eph_user_name_client_share(gnutls_buffer_st* buf, fido
     return ret;
 }
 
-int _gnutls13_fido2_db_name_response(gnutls_session_t session, fido2_server_ext_st* priv) {
+int _gnutls13_fido2_db_name_response(gnutls_session_t session, fido2_server_ext_st* priv)
+{
     int ret;
     sqlite3_stmt *res;
     sqlite3* db;

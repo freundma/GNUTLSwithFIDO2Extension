@@ -19,8 +19,6 @@ extern int fido_assert_add_allow_credential(const unsigned char *id, size_t len)
 extern int fido_assert_setup(const unsigned char *client_data_hash, const char *rpid,
                         const char *user_verification);
 
-int set_extensions(gnutls_buffer_st *buf, json_t *extensions_json);
-
 int parse_extensions(gnutls_buffer_st *buf);
 
 int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json);
@@ -31,7 +29,8 @@ int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st 
 
 char* rand_string(char *str, size_t size);
 
-int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_server_ext_st *priv) {
+int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_server_ext_st *priv)
+{
     int ret;
     gnutls_buffer_st buf;
     mbuffer_st *bufel = NULL;
@@ -40,11 +39,9 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     uint8_t flags = GNUTLS_FIDO2_RP_ID_SET;
     uint64_t timeout = 0;
     char* user_verification = NULL;
-    json_t* extensions_json = NULL;
     json_t* aC_json = NULL;
     json_t* uV_json = NULL;
     struct base64_decode_ctx ctx;
-    size_t decode_length;
     int sd;
     gnutls_certificate_credentials_t xcred;
 
@@ -307,7 +304,8 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
         return ret;
 }
 
-int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_client_ext_st* priv) {
+int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_client_ext_st* priv)
+{
     int ret;
     gnutls_buffer_st buf;
     uint8_t flags;
@@ -645,7 +643,8 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
         return ret;
 }
 
-int parse_extensions(gnutls_buffer_st *buf) {
+int parse_extensions(gnutls_buffer_st *buf)
+{
     size_t number;
     size_t length;
 
@@ -684,7 +683,8 @@ int parse_extensions(gnutls_buffer_st *buf) {
     return 0;
 }
 
-int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json) {
+int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json)
+{
     int ret;
     size_t index;
     json_t* value_json;
@@ -747,7 +747,8 @@ int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json) {
     return ret;
 }
 
-int parse_allow_credentials(gnutls_buffer_st *buf, gnutls_session_t session) {
+int parse_allow_credentials(gnutls_buffer_st *buf, gnutls_session_t session)
+{
     size_t number;
     size_t length;
     size_t id_length;
@@ -861,7 +862,8 @@ int parse_allow_credentials(gnutls_buffer_st *buf, gnutls_session_t session) {
         return ret;
 }
 
-int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st *priv) {
+int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st *priv)
+{
     int ret = 0;
     gnutls_buffer_st buf;
     uint8_t flags = GNUTLS_FIDO2_RP_ID_SET | GNUTLS_FIDO2_ALLOW_CREDENTIALS_SET |
@@ -969,7 +971,8 @@ int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st 
         return ret;
 }
 
-char *rand_string(char *str, size_t size) {
+char *rand_string(char *str, size_t size)
+{
     /* random base64url encoded challenge */
     const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_0123456789";
     if (size) {
