@@ -57,8 +57,8 @@ int main(void)
          *
          gnutls_certificate_set_x509_key_file (xcred, "cert.pem", "key.pem", 
          GNUTLS_X509_FMT_PEM); 
-         */
-
+         */ 
+         
         /* Initialize TLS session */
         CHECK(gnutls_init(&session, GNUTLS_CLIENT));
 

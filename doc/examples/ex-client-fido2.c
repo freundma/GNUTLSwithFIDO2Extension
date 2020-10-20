@@ -39,7 +39,6 @@ int main(void)
         int ret, sd, ii;
         gnutls_session_t session;
         char buffer[MAX_BUF + 1];
-        const char *err;
 
         if (gnutls_check_version("3.6.3") == NULL) {
                 fprintf(stderr, "GnuTLS 3.6.3 or later is required for this example\n");
@@ -64,7 +63,7 @@ int main(void)
          * change it in any way you want. In this case be aware that PSK authentication is
          * only allowed in the first handshake in FN mode.
          */
-        ret = gnutls_fido2_perform_handshake(&session, "marioFN", GNUTLS_FIDO2_USER_NAME,
+        ret = gnutls_fido2_perform_handshake(&session, NULL, NONE,
                                         "localhost", &sd, "127.0.0.1", "5556", 0);
 
         if (ret < 0) {

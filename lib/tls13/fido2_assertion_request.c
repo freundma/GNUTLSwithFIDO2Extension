@@ -239,7 +239,7 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
         goto error;
     }
 
-    ret = _gnutls_buffer_append_data_prefix(&buf, 16, (void*) challenge_base64url, strlen(challenge_base64url) + 1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 16, (void*) challenge_base64url, strlen(challenge_base64url));
     if (ret < 0) {
         gnutls_assert();
         goto error;
@@ -253,7 +253,7 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
         }
     }
     
-    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) priv->rpid, strlen(priv->rpid) + 1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) priv->rpid, strlen(priv->rpid));
     if (ret < 0) {
         gnutls_assert();
         goto error;
@@ -269,7 +269,7 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     }
 
     if (flags & GNUTLS_FIDO2_USER_VERIFICATION_SET) {
-        ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) user_verification, strlen(user_verification) + 1);
+        ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) user_verification, strlen(user_verification));
         if (ret < 0) {
             gnutls_assert();
             goto error;
@@ -356,7 +356,7 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
     }
     buf.data += 2;
 
-    base64url_challenge = gnutls_malloc(length);
+    base64url_challenge = gnutls_malloc(length+1);
     if (base64url_challenge == NULL) {
         gnutls_assert();
         ret = GNUTLS_E_MEMORY_ERROR;
@@ -364,6 +364,7 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
     }
 
     memcpy(base64url_challenge, buf.data, length);
+    base64url_challenge[length] = '\0'; /* NULL termination */
     DECR_LENGTH_COM(buf.length, length, ret = GNUTLS_E_UNEXPECTED_PACKET_LENGTH);
     if (ret < 0) {
         gnutls_free(base64url_challenge);
@@ -392,7 +393,7 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
         }
         buf.data++;
 
-        rpid = gnutls_malloc(length);
+        rpid = gnutls_malloc(length+1);
         if (rpid == NULL) {
             gnutls_assert();
             ret = GNUTLS_E_MEMORY_ERROR;
@@ -401,6 +402,7 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
         }
 
         memcpy(rpid, buf.data, length);
+        rpid[length] = '\0'; /* NULL termination */
         DECR_LENGTH_COM(buf.length, length, ret = GNUTLS_E_UNEXPECTED_PACKET_LENGTH);
         if (ret < 0){
             gnutls_free(base64url_challenge);
@@ -451,7 +453,7 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
         }
         buf.data++;
 
-        user_verification = gnutls_malloc(length);
+        user_verification = gnutls_malloc(length+1);
         if (user_verification == NULL) {
             gnutls_assert();
             ret = GNUTLS_E_MEMORY_ERROR;
@@ -461,6 +463,7 @@ int _gnutls13_recv_fido2_assertion_request(gnutls_session_t session, fido2_clien
         }
 
         memcpy(user_verification, buf.data, length);
+        user_verification[length] = '\0';
         DECR_LENGTH_COM(buf.length, length, ret = GNUTLS_E_UNEXPECTED_PACKET_LENGTH);
         if (ret < 0) {
             gnutls_free(base64url_challenge);
@@ -728,7 +731,7 @@ int set_allow_credentials(gnutls_buffer_st *buf, json_t *aC_json)
             gnutls_free(id);
             return ret;
         }
-        ret = _gnutls_buffer_append_data_prefix(buf, 8, (void*) type, strlen(type) + 1);
+        ret = _gnutls_buffer_append_data_prefix(buf, 8, (void*) type, strlen(type));
         if (ret < 0) {
             gnutls_assert();
             gnutls_free(id);
@@ -790,13 +793,14 @@ int parse_allow_credentials(gnutls_buffer_st *buf, gnutls_session_t session)
         }
         buf->data++;
 
-        type = gnutls_malloc(length);
+        type = gnutls_malloc(length+1);
         if (type == NULL) {
             gnutls_assert();
             gnutls_free(id);
             return GNUTLS_E_MEMORY_ERROR;
         }
         memcpy(type, buf->data, length);
+        type[length] = '\0'; /* NULL termination */
         DECR_LENGTH_COM(buf->length, length, ret = GNUTLS_E_UNEXPECTED_PACKET_LENGTH);
         if (ret < 0) {
             gnutls_free(type);
@@ -868,7 +872,7 @@ int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st 
     gnutls_buffer_st buf;
     uint8_t flags = GNUTLS_FIDO2_RP_ID_SET | GNUTLS_FIDO2_ALLOW_CREDENTIALS_SET |
         GNUTLS_FIDO2_USER_VERIFICATION_SET | GNUTLS_FIDO2_EPH_USER_NAME_SERVER_SHARE_SET;
-    char challenge[CHALLENGE_LENGTH+1]; /* NULL termination */
+    char challenge[CHALLENGE_LENGTH];
     uint8_t aCid[ALLOWCREDENTIAL_ID_LENGTH];
     char* user_verification = "preferred";
     size_t aC_number = 1;
@@ -900,7 +904,7 @@ int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st 
     }
 
     /* RP-ID */
-    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) priv->rpid, strlen(priv->rpid) +1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) priv->rpid, strlen(priv->rpid));
     if (ret < 0) {
         gnutls_assert();
         _gnutls_buffer_clear(&buf);
@@ -934,7 +938,7 @@ int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st 
         goto error;
     }
 
-    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) "public-key", strlen("public-key") + 1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) "public-key", strlen("public-key"));
     if (ret < 0) {
         goto error;
     }
@@ -945,7 +949,7 @@ int send_random_assertion_request(gnutls_session_t session, fido2_server_ext_st 
     }
 
     /* user verification */
-    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) user_verification, strlen(user_verification) + 1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) user_verification, strlen(user_verification));
     if (ret < 0) {
         goto error;
     }
@@ -981,7 +985,6 @@ char *rand_string(char *str, size_t size)
             int key = rand() % (int) (sizeof charset -1);
             str[n] = charset[key];
         }
-        str[size] = '\0';
     }
     return str;
 }

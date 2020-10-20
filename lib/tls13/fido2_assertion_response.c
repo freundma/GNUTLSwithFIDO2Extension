@@ -159,7 +159,7 @@ int _gnutls13_send_fido2_assertion_response(gnutls_session_t session, fido2_clie
     }
 
     /* client data json */
-    ret = _gnutls_buffer_append_data_prefix(&buf, 24, (void*) priv->client_data_json, strlen(priv->client_data_json) + 1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 24, (void*) priv->client_data_json, strlen(priv->client_data_json));
     if (ret < 0) {
         gnutls_assert();
         goto end;
@@ -300,13 +300,14 @@ int _gnutls13_recv_fido2_assertion_response(gnutls_session_t session, fido2_serv
         goto error;
     }
     buf.data += 3;
-    client_data_json = gnutls_malloc(length);
+    client_data_json = gnutls_malloc(length+1);
     if (client_data_json == NULL) {
         gnutls_assert();
         ret = GNUTLS_E_MEMORY_ERROR;
         goto error;
     }
     memcpy(client_data_json, buf.data, length);
+    client_data_json[length] = '\0';
     DECR_LENGTH_COM(buf.length, length, ret = GNUTLS_E_UNEXPECTED_PACKET_LENGTH);
     if (ret < 0) {
         gnutls_free(client_data_json);

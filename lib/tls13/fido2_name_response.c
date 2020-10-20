@@ -24,7 +24,7 @@ int _gnutls13_send_fido2_name_response(gnutls_session_t session, fido2_client_ex
     }
 
     /* append username and length of it */
-    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) priv->username, strlen(priv->username)+1);
+    ret = _gnutls_buffer_append_data_prefix(&buf, 8, (void*) priv->username, strlen(priv->username));
     if (ret < 0) {
         gnutls_assert();
         goto cleanup;
@@ -73,7 +73,7 @@ int _gnutls13_recv_fido2_name_response(gnutls_session_t session, fido2_server_ex
     DECR_LEN(buf.length, 1);
     buf.data++;
 
-    priv->username = gnutls_malloc(length);
+    priv->username = gnutls_malloc(length+1);
     if (priv->username == NULL) {
         gnutls_assert();
         ret = GNUTLS_E_MEMORY_ERROR;
@@ -81,6 +81,7 @@ int _gnutls13_recv_fido2_name_response(gnutls_session_t session, fido2_server_ex
     }
 
     memcpy(priv->username, buf.data, length);
+    priv->username[length] = '\0'; /* NULL termination */
     DECR_LENGTH_COM(buf.length, length, ret = GNUTLS_E_UNEXPECTED_PACKET_LENGTH);
     if (ret < 0) {
         gnutls_free(priv->username);
