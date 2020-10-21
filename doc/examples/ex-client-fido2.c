@@ -101,13 +101,13 @@ int main(void)
 
         CHECK(gnutls_bye(session, GNUTLS_SHUT_RDWR));
 
-      end:
+        end:
       
-        tcp_close(sd);
+                tcp_close(sd);
 
-        gnutls_deinit(session);
+                gnutls_deinit(session);
 
-        gnutls_global_deinit();
+                gnutls_global_deinit();
 
-        return 0;
+                return 0;
 }
