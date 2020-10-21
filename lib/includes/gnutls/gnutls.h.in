@@ -1770,8 +1770,8 @@ typedef enum {
 } gnutls_fido2_auth_data_flags_t;
 
 typedef enum {
-	GNUTLS_FIDO2_MODE_FN = 1<<2,
-	GNUTLS_FIDO2_MODE_FI = 1<<3
+	GNUTLS_FIDO2_MODE_FN = 1<<5,
+	GNUTLS_FIDO2_MODE_FI = 1<<4
 } gnutls_fido2_mode_t;
 
 typedef enum {

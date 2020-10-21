@@ -232,7 +232,7 @@ int _gnutls13_send_fido2_assertion_request(gnutls_session_t session, fido2_serve
     /* At this point we don't parse set extensions for the purpose
      * of simplicity, but this could be a thing in later versions.
      */
-
+    
     ret = _gnutls_buffer_append_data(&buf, &flags, 1);
     if (ret < 0) {
         gnutls_assert();
