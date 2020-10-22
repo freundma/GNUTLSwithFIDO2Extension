@@ -30,10 +30,6 @@
 extern int tcp_connect(const char *SERVER, const char *PORT);
 extern void tcp_close(int sd);
 
-void logging (int level, const char* message) {
-        printf("Level: %i, Message: %s \n",level,message);
-}
-
 int main(void)
 {
         int ret, sd, ii;
@@ -46,10 +42,6 @@ int main(void)
         }
 
         CHECK(gnutls_global_init());
-
-        /* LOG */
-        /*gnutls_global_set_log_level(10);
-        gnutls_global_set_log_function(&logging);*/
 
         /* Initialize TLS session
          */
