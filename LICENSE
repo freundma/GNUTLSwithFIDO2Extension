@@ -22,3 +22,6 @@ or the GPLv2+ license.
 For any copyright year range specified as YYYY-ZZZZ in this package
 note that the range specifies every single year in that closed interval.
 
+The extension with FIDO2 is licensed under the GNU General Public 
+License (GPL) version 3. See the doc/COPYING.FIDO2 for the license terms 
+and mentioning of other software included.
