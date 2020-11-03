@@ -3,6 +3,9 @@
  * Copyright (C) 2015-2018 Red Hat, Inc.
  *
  * Author: Nikos Mavrogiannopoulos
+ * 
+ * Code related to the FIDO2 extension:
+ * Copyright (C) 2020, Mario Freund
  *
  * This file is part of GnuTLS.
  *

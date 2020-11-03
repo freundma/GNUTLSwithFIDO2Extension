@@ -2,6 +2,9 @@
  * Copyright (C) 2000-2012 Free Software Foundation, Inc.
  *
  * Author: Nikos Mavrogiannopoulos
+ * 
+ * Code related to the FIDO2 extension:
+ * Copyright (C) 2020, Mario Freund
  *
  * This file is part of GnuTLS.
  *

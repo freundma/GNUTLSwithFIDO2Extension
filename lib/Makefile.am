@@ -3,6 +3,9 @@
 #
 # Author: Nikos Mavrogiannopoulos
 #
+# Code related to the FIDO2 extension:
+# Copyright (C) 2020, Mario Freund
+#
 # This file is part of GnuTLS.
 #
 # The GnuTLS is free software; you can redistribute it and/or
