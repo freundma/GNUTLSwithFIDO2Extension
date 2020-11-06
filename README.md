@@ -66,7 +66,7 @@ the allowed origins via an evironment variable (which can be mandatory). Example
 The server uses a SQLite3-database for saving the triples (ephemeral username, username, expiration time). You can execute the program 
 /doc/examples/fido2-user-db.c to generate a suitable database.
 
-# LICENSING
+# Licensing
 
 The extension with FIDO2 is licensed under a GPLv3 license. See LICENSE and /doc/COPYING, /doc/COPYING.LESSER and /doc/COPYING.FIDO2 for more information.
 
