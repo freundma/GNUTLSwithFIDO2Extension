@@ -18,10 +18,10 @@
 #include <stdbool.h>
 #include <signal.h>
 
-#define KEYFILE "/home/mario/GNUTls/gnutls/tests/suite/tls-fuzzer/tlsfuzzer/tests/serverX509Key.pem"
-#define CERTFILE "/home/mario/GNUTls/gnutls/tests/suite/tls-fuzzer/tlsfuzzer/tests/serverX509Cert.pem"
+#define KEYFILE "key.pem"
+#define CERTFILE "cert.pem"
 #define CAFILE "/etc/ssl/certs/ca-certificates.crt"
-#define CRLFILE "/home/mario/GNUTls/gnutls/devel/openssl/test/testcrl.pem"
+#define CRLFILE "crl.pem"
 
 #define CHECK(x) assert((x)>=0)
 #define LOOP_CHECK(rval, cmd) \
@@ -35,15 +35,15 @@
  * $ ocsptool --ask --load-cert your_cert.pem --load-issuer your_issuer.pem
  *            --load-signer your_issuer.pem --outfile ocsp-status.der
  */
-//#define OCSP_STATUS_FILE "ocsp-status.der"
+#define OCSP_STATUS_FILE "ocsp-status.der"
 
 /* This is a sample TLS 1.3 echo server, using FIDO2 authentication.
  */
 
 #define MAX_BUF 1024
 #define LISTEN_PORT 5556               /* listen to 5556 port */
-#define RP_IP "127.0.0.1"        /* ip address of rp server */
-#define RP_PORT "8443"            /* port of rp server */
+#define RP_IP "127.0.0.1"        /* ip address of rp/webauthn server */
+#define RP_PORT "8443"            /* port of rp/webauthn server */
 
 int main(void)
 {
@@ -82,9 +82,9 @@ int main(void)
                                                    KEYFILE,
                                                    GNUTLS_X509_FMT_PEM));
 
-        /*CHECK(gnutls_certificate_set_ocsp_status_request_file(x509_cred,
+        CHECK(gnutls_certificate_set_ocsp_status_request_file(x509_cred,
                                                               OCSP_STATUS_FILE,
-                                                              0));*/
+                                                              0));
 
         CHECK(gnutls_priority_init(&priority_cache, NULL, NULL));
         /* Instead of the default options as shown above one could specify
@@ -94,10 +94,6 @@ int main(void)
          *                       "%SERVER_PRECEDENCE",
          *                       NULL, GNUTLS_PRIORITY_INIT_DEF_APPEND);
 	 */
-        /*CHECK(gnutls_priority_init2(&priority_cache,
-                                        "-ECDHE-PSK:-DHE-PSK:-PSK",
-                                        NULL, GNUTLS_PRIORITY_INIT_DEF_APPEND));*/
-
 #if GNUTLS_VERSION_NUMBER >= 0x030506
         /* only available since GnuTLS 3.5.6, on previous versions see
          * gnutls_certificate_set_dh_params(). */
@@ -120,8 +116,6 @@ int main(void)
 
         listen(listen_sd, 1024);
 
-        /* establish rp session */
-
         printf("Server ready. Listening to port '%d'.\n\n", LISTEN_PORT);
 
         CHECK(gnutls_fido2_generate_secret(secret));
@@ -133,8 +127,8 @@ int main(void)
                 CHECK(gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE,
                                              x509_cred));
 
-                /* We don't request any certificate from the client.
-                 * If we did we would need to verify it. One way of
+                /* We don't request any certificate from the client, because FIDO2
+                 * is required. If we did we would need to verify it. One way of
                  * doing that is shown in the "Verifying a certificate"
                  * example.
                  */
