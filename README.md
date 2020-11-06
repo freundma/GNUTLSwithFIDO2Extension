@@ -59,9 +59,9 @@ The documentation of the api regarding FIDO2 is found under /doc/functions and e
 doc/examples/ex-client-fido2.c. In order to run it you have to start the java-webauthn-server and registrate the user (for example in your browser). You can set
 the allowed origins via an evironment variable (which can be mandatory). Example:
 
-´´´
+```
  export YUBICO_WEBAUTHN_ALLOWED_ORIGINS="https://localhost:8443,https://localhost"
-´´´
+```
 
 The server uses a SQLite3-database for saving the triples (ephemeral username, username, expiration time). You can execute the program 
 /doc/examples/fido2-user-db.c to generate a suitable database.
