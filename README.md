@@ -12,8 +12,8 @@ GnuTLS implements the TLS/SSL (Transport Layer Security aka Secure
 Sockets Layer) protocol.  Additional information can be found at
 [www.gnutls.org](https://www.gnutls.org/).
 
-In the extension of GnuTLS the authentication via FIDO2 has been added as a proof of concept.
-The purpose of this is to make FIDO2 more available for internet users and help solving the
+In the extension of GnuTLS the authentication via FIDO2 has been added as a proof of concept in the context of 
+a bachelor thesis. The purpose of this is to make FIDO2 available for more internet users and help solving the
 problem of the rather unsafe password authentication. The extension adds a new client hello extension,
 four new message types and three new alerts. As there are two major ways of registering, a resident PKCS and
 a non resident PKCS, the new TFE (TLS 1.3 with FIDO2 extension)-Handshake is offered in two modes. Please note
@@ -50,13 +50,18 @@ Although the registration is not part of this repository, the [java-webauthn-ser
 The configuration of the TLS server offers the parameters to provide ip address and port of the java-webauthn-server. That means that the TLS server 
 and java-webauthn-server work as one unit. Mind that the java-webauthn-server is in-memory. Your registration is volatile.
 
-# Additional information
+# Usage and addtitional information
 
-This extension of FIDO2 uses the specification of Tom Breitopf who did a PoC within tlslite-ng. It is found [here] (https://github.com/tom95br/tlslite-ng). 
+This extension of FIDO2 uses the specification of Tom Breitopf who did a PoC within tlslite-ng. It is found [here](https://github.com/tom95br/tlslite-ng). 
 The requirements to execute the code are found below.
 
 The documentation of the api regarding FIDO2 is found under /doc/functions and examples for the usage under /doc/examples/ex-serv-fido2.c and 
-doc/examples/ex-client-fido2.c.
+doc/examples/ex-client-fido2.c. In order to run it you have to start the java-webauthn-server and registrate the user (for example in your browser). You can set
+the allowed origins via an evironment variable (which can be mandatory). Example:
+
+´´´
+ export YUBICO_WEBAUTHN_ALLOWED_ORIGINS="https://localhost:8443,https://localhost"
+´´´
 
 The server uses a SQLite3-database for saving the triples (ephemeral username, username, expiration time). You can execute the program 
 /doc/examples/fido2-user-db.c to generate a suitable database.
