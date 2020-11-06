@@ -70,6 +70,8 @@ The server uses a SQLite3-database for saving the triples (ephemeral username, u
 
 The extension with FIDO2 is licensed under a GPLv3 license. See LICENSE and /doc/COPYING, /doc/COPYING.LESSER and /doc/COPYING.FIDO2 for more information.
 
+# Requirements and installation
+
 This file contains instructions for developers and advanced users that
 want to build from version controlled sources. See [INSTALL.md](INSTALL.md)
 for building released versions.
