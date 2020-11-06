@@ -110,8 +110,8 @@ We require several tools to check out and build the software, including:
 
 Additional requirements for the FIDO2 extension:
 * [java-webauthn-server](https://github.com/Yubico/java-webauthn-server)
-* [libfido2](https://github.com/Yubico/libfido2) version 1.3.1
-* [Jansson](https://digip.org/jansson/) version 2.31 
+* [libfido2](https://github.com/Yubico/libfido2) version 1.3.1 (later versions should also work)
+* [Jansson](https://digip.org/jansson/) version 2.31 (later versions should also work)
 * [SQLite3](https://sqlite.org/index.html) version 3.11.0 or later
 * [liburl](https://curl.se/libcurl/)
 
