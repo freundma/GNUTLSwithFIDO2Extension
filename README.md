@@ -54,7 +54,7 @@ and java-webauthn-server work as one unit. Mind that the java-webauthn-server is
 
 You need a FIDO2 Token (USB preferred) to use the extension successfully.
 
-This extension of FIDO2 uses the specification by Tom Breitopf who did a PoC within tlslite-ng. It is found [here](https://github.com/tom95br/tlslite-ng). 
+This extension of FIDO2 uses the specification by Tom Breitkopf who did a PoC within tlslite-ng. It is found [here](https://github.com/tom95br/tlslite-ng). 
 The requirements to execute the code are found below.
 
 The documentation of the api regarding FIDO2 is found under /doc/functions and examples for the usage under /doc/examples/ex-serv-fido2.c and 
